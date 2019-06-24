@@ -30,7 +30,7 @@ namespace WebApi.Auth
         protected AppUserAuth BuildUserAuthObject(AppUser authUser)
         {
             AppUserAuth ret = new AppUserAuth();
-            //List<AppUserClaim> claims = new List<AppUserClaim>();
+            List<AppUserClaim> claims = new List<AppUserClaim>();
 
             // Set User Properties
             ret.UserName = authUser.UserName;
@@ -38,7 +38,7 @@ namespace WebApi.Auth
             ret.BearerToken = new Guid().ToString();
 
             // Get all claims for this user
-            //ret.Claims = GetUserClaims(authUser);
+            ret.Claims = UserData.FetchUserClaim().FindAll(t => t.UserId == authUser.UserId);
 
             // Set JWT bearer token
             ret.BearerToken = BuildJwtToken(ret);
@@ -57,16 +57,16 @@ namespace WebApi.Auth
             jwtClaims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
 
             // Add custom claims
-            //foreach (var claim in authUser.Claims)
-            //{
-            //    jwtClaims.Add(new Claim(claim.ClaimType, claim.ClaimValue));
-            //}
+            foreach (var claim in authUser.Claims)
+            {
+                jwtClaims.Add(new Claim(claim.ClaimType, claim.ClaimValue));
+            }
 
             // Create the JwtSecurityToken object
             var token = new JwtSecurityToken(
                 issuer: _configuraton.Issuer,
                 audience: _configuraton.Audience,
-                claims: null,
+                claims: jwtClaims,
                 notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.AddMinutes(
                     double.Parse(_configuraton.MinutesToExpiration)),
