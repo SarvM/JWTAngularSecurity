@@ -36,6 +36,8 @@ namespace WebApi
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Angular Authentication Swagger API", Version = "v1" });
             });
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,6 +59,11 @@ namespace WebApi
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Angular Authentication Swagger API V1");
                 c.RoutePrefix = string.Empty;
             });
+
+            app.UseCors(
+                options => options.WithOrigins(
+                "http://localhost:4200").AllowAnyMethod().AllowAnyHeader()
+            );
 
             //Disabled for development purpose; It should be enabled for production;
             //app.UseHttpsRedirection();

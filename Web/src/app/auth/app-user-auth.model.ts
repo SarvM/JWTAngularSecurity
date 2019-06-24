@@ -1,3 +1,5 @@
+import { AppUserClaim } from './app-user-claim.model';
+
 export class AppUserAuth {
   userName: string = "";
   bearerToken: string = "";
