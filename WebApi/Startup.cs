@@ -10,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
+using WebApi.Auth;
 
 namespace WebApi
 {
@@ -25,7 +27,15 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            JWTBasicPayload payloadSettings = GetJWTPayloadSettings();
+            services.AddSingleton<JWTBasicPayload>(payloadSettings);
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Angular Authentication Swagger API", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,8 +51,28 @@ namespace WebApi
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Angular Authentication Swagger API V1");
+                c.RoutePrefix = string.Empty;
+            });
+
+            //Disabled for development purpose; It should be enabled for production;
+            //app.UseHttpsRedirection();
             app.UseMvc();
+        }
+
+        public JWTBasicPayload GetJWTPayloadSettings()
+        {
+            JWTBasicPayload settings = new JWTBasicPayload();
+
+            settings.Key = Configuration["JwtPayloadSettings:key"];
+            settings.Audience = Configuration["JwtPayloadSettings:audience"];
+            settings.Issuer = Configuration["JwtPayloadSettings:issuer"];
+            settings.MinutesToExpiration = Configuration["JwtPayloadSettings:minutesToExpiration"];
+
+            return settings;
         }
     }
 }
