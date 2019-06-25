@@ -9,14 +9,16 @@ namespace WebApi.Model
         public string Mode { get; set;}
         public string Rate { get; set;}
         public string Description { get; set;}
+        public string AccessClaim { get; set;}
 
-        public Package(string id, string name, string mode, string rate, string description)
+        public Package(string id, string name, string mode, string rate, string description, string accessClaim)
         {
             Id = id;
             Name = name;
             Mode = mode;
             Rate = rate;
             Description = description;
+            AccessClaim = accessClaim;
         }
     }
 }
