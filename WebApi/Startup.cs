@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using WebApi.Auth;
 
@@ -35,6 +37,32 @@ namespace WebApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Angular Authentication Swagger API", Version = "v1" });
+            });
+
+                    // Register Jwt as the Authentication service
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "JwtBearer";
+                options.DefaultChallengeScheme = "JwtBearer";
+            })
+            .AddJwtBearer("JwtBearer", jwtBearerOptions =>
+            {
+                jwtBearerOptions.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(payloadSettings.Key)),
+                    ValidateIssuer = true,
+                    ValidIssuer = payloadSettings.Issuer,
+
+                    ValidateAudience = true,
+                    ValidAudience = payloadSettings.Audience,
+
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(
+                            int.Parse(payloadSettings.MinutesToExpiration))
+                    };
             });
 
             services.AddCors();
@@ -65,6 +93,7 @@ namespace WebApi
                 "http://localhost:4200").AllowAnyMethod().AllowAnyHeader()
             );
 
+            app.UseAuthentication();
             //Disabled for development purpose; It should be enabled for production;
             //app.UseHttpsRedirection();
             app.UseMvc();
